@@ -28,7 +28,33 @@ fn main() -> std::io::Result<()> {
         }
     }
 
+
+    let mut top_1: usize = 0;
+    let mut top_2: usize = 0;
+    let mut top_3: usize = 0;
+
+    for cal_count in elves.iter() {
+        if *cal_count > top_1 {
+            top_3 = top_2;
+            top_2 = top_1;
+            top_1 = *cal_count;
+        } else if *cal_count > top_2 {
+            top_3 = top_2;
+            top_2 = *cal_count;
+        } else if *cal_count > top_3 {
+            top_3 = *cal_count;
+        }
+    }
+
+    println!("Elve with most calories:");
     println!("Elve {} carries {} calories", largest_index, largest_cal_count);   
+
+    println!("-----------------");
+    println!("Top 3 Elves:");
+    println!("Top 1: {}", top_1);
+    println!("Top 2: {}", top_2);
+    println!("Top 3: {}", top_3);
+    println!("Top 3 Total: {}", top_1 + top_2 + top_3);
 
     Ok(())
 }
