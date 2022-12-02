@@ -4,14 +4,13 @@ const SCORE_WIN: i32 = 6;
 const SCORE_DRAW: i32 = 3;
 const SCORE_LOSE: i32 = 0;
 
-#[derive(Clone, Copy)]
 enum Shape {
     Rock,
     Paper,
     Scissors
 }
 
-fn to_score(shape: Shape) -> i32{
+fn to_score(shape: &Shape) -> i32{
     match shape {
         Shape::Rock => 1,
         Shape::Paper => 2,
@@ -37,7 +36,7 @@ fn get_player_shape(input: &str) -> Shape {
     }
 }
 
-fn get_score(game: (Shape, Shape)) -> i32 {
+fn get_score(game: (&Shape, &Shape)) -> i32 {
     let match_score: i32 = match game {
         (Shape::Rock, Shape::Rock) => SCORE_DRAW,
         (Shape::Rock, Shape::Paper) => SCORE_LOSE,
@@ -50,17 +49,21 @@ fn get_score(game: (Shape, Shape)) -> i32 {
         (Shape::Scissors, Shape::Scissors) => SCORE_DRAW,
     };
 
-    match_score + to_score(game.0)
+    match_score + to_score(&game.0)
 }
 
-fn get_intended_move(enemy_move: Shape, target_outcome: &str) -> Shape {
+fn get_intended_move(enemy_move: &Shape, target_outcome: &str) -> Shape {
     match target_outcome {
         "X" => match enemy_move {
             Shape::Rock => Shape::Scissors,
             Shape::Paper => Shape::Rock,
             Shape::Scissors => Shape::Paper,
         },
-        "Y" => enemy_move,
+        "Y" => match enemy_move {
+            Shape::Rock => Shape::Rock,
+            Shape::Paper => Shape::Paper,
+            Shape::Scissors => Shape::Scissors,
+        },
         "Z" => match enemy_move {
             Shape::Rock => Shape::Paper,
             Shape::Paper => Shape::Scissors,
@@ -80,19 +83,19 @@ fn main() -> std::io::Result<()> {
 
     for line in contents.lines() {
         let mut parts = line.split_whitespace();
-        let enemy_shape = get_enemy_shape(parts.next().unwrap());
-        
-        let player_str = parts.last().unwrap();
 
+        let enemy_shape = get_enemy_shape(parts.next().unwrap());
+    
+        let player_str = parts.last().unwrap();
         let player_shape_1 = get_player_shape(player_str);
-        let player_shape_2 = get_intended_move(enemy_shape, player_str);
-        total_score_1 += get_score((player_shape_1, enemy_shape));
-        total_score_2 += get_score((player_shape_2, enemy_shape));
+        let player_shape_2 = get_intended_move(&enemy_shape, player_str);
+
+        total_score_1 += get_score((&player_shape_1, &enemy_shape));
+        total_score_2 += get_score((&player_shape_2, &enemy_shape));
     }
 
     println!("(part 1) Total Score: {}", total_score_1);
     println!("(part 2) Total Score: {}", total_score_2);
-
 
     return Ok(());
 }
