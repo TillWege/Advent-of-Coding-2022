@@ -4,6 +4,7 @@ const SCORE_WIN: i32 = 6;
 const SCORE_DRAW: i32 = 3;
 const SCORE_LOSE: i32 = 0;
 
+#[derive(Clone, Copy)]
 enum Shape {
     Rock,
     Paper,
@@ -52,21 +53,46 @@ fn get_score(game: (Shape, Shape)) -> i32 {
     match_score + to_score(game.0)
 }
 
+fn get_intended_move(enemy_move: Shape, target_outcome: &str) -> Shape {
+    match target_outcome {
+        "X" => match enemy_move {
+            Shape::Rock => Shape::Scissors,
+            Shape::Paper => Shape::Rock,
+            Shape::Scissors => Shape::Paper,
+        },
+        "Y" => enemy_move,
+        "Z" => match enemy_move {
+            Shape::Rock => Shape::Paper,
+            Shape::Paper => Shape::Scissors,
+            Shape::Scissors => Shape::Rock,
+        },
+        _ => panic!()
+    }
+}
+
 fn main() -> std::io::Result<()> {
     let mut file = File::open("./inputs/day2.txt")?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
 
-    let mut total_score = 0;
+    let mut total_score_1 = 0;
+    let mut total_score_2 = 0;
 
     for line in contents.lines() {
         let mut parts = line.split_whitespace();
         let enemy_shape = get_enemy_shape(parts.next().unwrap());
-        let player_shape = get_player_shape(parts.last().unwrap());
-        total_score += get_score((player_shape, enemy_shape));
+        
+        let player_str = parts.last().unwrap();
+
+        let player_shape_1 = get_player_shape(player_str);
+        let player_shape_2 = get_intended_move(enemy_shape, player_str);
+        total_score_1 += get_score((player_shape_1, enemy_shape));
+        total_score_2 += get_score((player_shape_2, enemy_shape));
     }
 
-    println!("Total Score: {}", total_score);
+    println!("(part 1) Total Score: {}", total_score_1);
+    println!("(part 2) Total Score: {}", total_score_2);
+
 
     return Ok(());
 }
