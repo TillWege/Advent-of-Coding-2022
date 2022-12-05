@@ -13,16 +13,13 @@ fn main() -> std::io::Result<()> {
         let range_1_lower: i32 = first_half.split('-').next().unwrap().parse().unwrap();
         let range_1_upper: i32 = first_half.split('-').last().unwrap().parse().unwrap();
 
-        let range_1 = range_1_lower..range_1_upper;
-
         let range_2_lower: i32 = second_half.split('-').next().unwrap().parse().unwrap();
         let range_2_upper: i32 = second_half.split('-').last().unwrap().parse().unwrap();
 
-        let range_2 = range_2_lower..range_2_upper;
-
-        if (range_1.contains(&range_2_lower) && range_1.contains(&range_2_upper))
-            || (range_2.contains(&range_1_lower) && range_2.contains(&range_1_upper))
-        {
+        // prüfen ob range 1 innerhalb von range 2 liegt
+        if (range_1_lower >= range_2_lower) && (range_1_upper <= range_2_upper) {
+            total += 1;
+        } else if (range_2_lower >= range_1_lower) && (range_2_upper <= range_1_upper) {
             total += 1;
         }
     }
