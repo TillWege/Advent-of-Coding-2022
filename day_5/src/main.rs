@@ -17,6 +17,8 @@ fn main() -> std::io::Result<()> {
         vec!['W','P','J']
     ];
 
+    let mut stacks_2 = stacks.clone();
+
     println!("Top Elements: ");
     for (ind, stack, ) in stacks.iter().enumerate() {
         println!("Stack {}: {}", ind, stack.last().unwrap());
@@ -39,13 +41,16 @@ fn main() -> std::io::Result<()> {
             let move_target: usize = move_target_opt.unwrap().parse().unwrap();
  
             let mut temp_stack: VecDeque<char> = VecDeque::new();
+            let mut temp_stack_2: VecDeque<char> = VecDeque::new();
                 
-            for i in 0..move_count {
+            for _ in 0..move_count {
                 temp_stack.push_front(stacks[move_origin - 1].pop().unwrap());
+                temp_stack_2.push_front(stacks_2[move_origin - 1].pop().unwrap());
             }
 
-            for i in 0..move_count {
+            for _ in 0..move_count {
                 stacks[move_target - 1].push(temp_stack.pop_back().unwrap());
+                stacks_2[move_target - 1].push(temp_stack_2.pop_front().unwrap());
             }
 
         }else {
@@ -55,11 +60,23 @@ fn main() -> std::io::Result<()> {
 
     }
 
+    let mut res_1 = String::from("");
     println!("Top Elements: ");
     for (ind, stack, ) in stacks.iter().enumerate() {
         let last_elem = stack.last().unwrap();
+        res_1.push(last_elem.clone());
         println!("Stack {}: {}", ind, last_elem);
     }
+    println!("Top Container: {}", res_1);
+
+    let mut res_2 = String::from("");
+    println!("Top Elements: ");
+    for (ind, stack, ) in stacks_2.iter().enumerate() {
+        let last_elem = stack.last().unwrap();
+        res_2.push(last_elem.clone());
+        println!("Stack {}: {}", ind, last_elem);
+    }
+    println!("Top Container: {}", res_2);
 
     Ok(())
 

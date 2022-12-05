@@ -28,7 +28,6 @@ fn main() -> std::io::Result<()> {
         }
     }
 
-
     let mut top_1: usize = 0;
     let mut top_2: usize = 0;
     let mut top_3: usize = 0;
