@@ -1,4 +1,4 @@
-use std::{fs::File, io::Read, ops::RangeBounds};
+use std::{fs::File, io::Read};
 
 fn main() -> std::io::Result<()> {
     let mut file = File::open("./inputs/day4.txt")?;
