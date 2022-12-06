@@ -5,21 +5,28 @@ fn main() -> std::io::Result<()> {
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
 
+    println!("Aufgabe 1: {}", task(&contents, 4));
+    println!("Aufgabe 2: {}", task(&contents, 14));
+
+    Ok(())
+}
+
+fn task(str: &String, uniq_char_len: usize) -> usize {
     let mut chars: Vec<char> = Vec::new();
 
 
-    for (index, c) in contents.chars().enumerate() {
+    for (index, c) in str.chars().enumerate() {
         chars.push(c);
 
         let len = chars.len();
 
-        if len >= 4 {
-            let last4 = chars.as_slice()[chars.len()-4..].to_vec();
+        if len >= uniq_char_len {
+            let last4 = chars.as_slice()[chars.len()-uniq_char_len..].to_vec();
             if !(1..last4.len()).any(|i| last4[i..].contains(&last4[i - 1])) {
-                println!("found 4 uniqs at pos: {}", index + 1);
-                break;
+                return index + 1;
             }
         }
     }
-    Ok(())
+
+    0
 }
