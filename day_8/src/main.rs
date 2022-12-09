@@ -83,12 +83,86 @@ fn main() -> std::io::Result<()> {
         }
     }
    
+    println!("Part 1:");
     println!("Total Visible Top: {}", total_visible_top);
     println!("Total Visible Bottom: {}", total_visible_bottom);
     println!("Total Visible Right: {}", total_visible_right);
     println!("Total Visible Left: {}", total_visible_left);
     println!("Total Visible Outside: {}", total_visible_outside);
     println!("Total Visible: {}", total_visible_top + total_visible_bottom + total_visible_right + total_visible_left + total_visible_outside);
+    println!("---------------------");
+    println!("Part 2:");
+
+    let mut highest_score = 0;
+    let mut top_x = 0;
+    let mut top_y = 0;
+
+    for y in 0..side_len {
+        for x in 0..side_len {
+            if (x == 0) || (x == (side_len - 1)) || (y == 0) || (y == (side_len - 1)) { continue }
+
+            if (x == 2) && (y == 3) {
+                println!("");
+            }
+
+            let tree_height = trees[get_index(x, y, side_len)];
+
+            let mut top_dist = 0;
+            let mut bot_dist = 0;
+            let mut rig_dist = 0;
+            let mut lft_dist = 0;
+
+            // ---------------
+            // Bottom
+            for new_y in (y+1)..side_len {
+                bot_dist += 1;
+                if trees[get_index(x, new_y, side_len)] >= tree_height {
+                    break;
+                }
+            }
+         
+            // ---------------
+            // Right
+            for new_x in (x+1)..side_len {
+                rig_dist += 1;
+                if trees[get_index(new_x, y, side_len)] >= tree_height {
+                    break;
+                }
+            }
+            
+
+            // ---------------
+            // Top
+            for new_y in (0..y).rev() {
+                top_dist += 1;
+                if trees[get_index(x, new_y, side_len)] >= tree_height {
+                    break;
+                }
+            }  
+
+             
+
+            // ---------------
+            // Left
+            for new_x in (0..x).rev() {
+                lft_dist += 1;
+                if trees[get_index(new_x, y, side_len)] >= tree_height {
+                    break;
+                }
+            }
+
+            let score = top_dist * bot_dist * rig_dist * lft_dist;
+
+            if score > highest_score {
+                top_x = x;
+                top_y = y;
+                highest_score = score;
+            }
+        }
+    }
+
+    println!("Part 2: {} at x:{} y:{}", highest_score, top_x, top_y); // 1664 ist zu wenig
+
 
     Ok(())
 }
