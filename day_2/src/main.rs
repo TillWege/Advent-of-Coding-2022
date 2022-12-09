@@ -49,7 +49,7 @@ fn get_score(game: (&Shape, &Shape)) -> i32 {
         (Shape::Scissors, Shape::Scissors) => SCORE_DRAW,
     };
 
-    match_score + to_score(&game.0)
+    match_score + to_score(game.0)
 }
 
 fn get_intended_move(enemy_move: &Shape, target_outcome: &str) -> Shape {
@@ -97,5 +97,5 @@ fn main() -> std::io::Result<()> {
     println!("(part 1) Total Score: {}", total_score_1);
     println!("(part 2) Total Score: {}", total_score_2);
 
-    return Ok(());
+    Ok(())
 }

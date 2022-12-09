@@ -56,8 +56,6 @@ fn main() -> std::io::Result<()> {
         }else {
             println!("Shit happend at line: {}", line);
         }
-
-
     }
 
     let mut res_1 = String::from("");
