@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, vec};
 
 #[derive(Hash, PartialEq, Eq, Clone, Copy, Debug)]
 struct Vec2D {
@@ -21,8 +21,13 @@ fn main() -> std::io::Result<()> {
     let start_pos = Vec2D::default();
     visited_pos.insert(start_pos);
 
-    let mut head_pos = Vec2D::default();
-    let mut tail_pos = Vec2D::default(); 
+    let mut rope: Vec<Vec2D> = Vec::new();
+
+    let rope_elements = 10;
+
+    for _ in 0..rope_elements {
+        rope.push(Vec2D::default())
+    }
 
 
     for line in contents.lines() {
@@ -35,44 +40,44 @@ fn main() -> std::io::Result<()> {
             // move head
             match direction {
                 "L" => {
-                    head_pos.x -= 1;
+                    rope[0].x -= 1;
                 },
                 "R" => {
-                    head_pos.x += 1;
+                    rope[0].x += 1;
                 },
                 "U" => {
-                    head_pos.y += 1;
+                    rope[0].y += 1;
                 },
                 "D" => {
-                    head_pos.y -= 1;
+                    rope[0].y -= 1;
                 },
                 _ => panic!()
             }
 
             // move tail
-            {
-                let dist_x = head_pos.x - tail_pos.x;
-                let dist_y = head_pos.y - tail_pos.y;
+            for index in 1..rope.len() {
+                let dist_x = rope[index - 1].x - rope[index].x;
+                let dist_y = rope[index - 1].y - rope[index].y;
 
                 // check if neighbouring
                 if (dist_x.abs() > 1) || (dist_y.abs() > 1) {
                     // update tail if not neighbouring anymore
-                    if head_pos.y > tail_pos.y {
-                        tail_pos.y += 1;
-                    } else if head_pos.y < tail_pos.y{
-                        tail_pos.y -= 1;
+                    if rope[index - 1].y > rope[index].y {
+                        rope[index].y += 1;
+                    } else if rope[index - 1].y < rope[index].y{
+                        rope[index].y -= 1;
                     }
 
-                    if head_pos.x > tail_pos.x {
-                        tail_pos.x += 1;
-                    } else if head_pos.x < tail_pos.x {
-                        tail_pos.x -= 1;
+                    if rope[index - 1].x > rope[index].x {
+                        rope[index].x += 1;
+                    } else if rope[index - 1].x < rope[index].x {
+                        rope[index].x -= 1;
                     }
 
                 }
             }
 
-            visited_pos.insert(tail_pos);
+            visited_pos.insert(rope.last().unwrap().clone());
         }
 
 
