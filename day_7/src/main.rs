@@ -33,9 +33,8 @@ impl TreeNode {
     }
 
     pub fn print(&self, level: usize) {
-        if self.children.len() == 0 {
-            println!("{}{}/{} ({})", " ".repeat(level * 2), self.get_parent_path(), self.name, self.get_size());
-        } else {
+        println!("{}{}/{} ({})", " ".repeat(level * 2), self.get_parent_path(), self.name, self.get_size());
+        if self.children.len() != 0  {
             for child in &self.children {
                 child.borrow().print(level + 1);
             }
@@ -49,7 +48,6 @@ impl TreeNode {
             let parent = self.parent.as_ref().unwrap();
             let mut path = parent.borrow().get_parent_path();
             path.push_str(&parent.borrow().name);
-            path.push_str("/");
             return path;
         }
     }
@@ -96,6 +94,7 @@ fn main() -> std::io::Result<()> {
                 new_node.borrow_mut().is_folder = false;
                 new_node.borrow_mut().size = size;
                 new_node.borrow_mut().name = name.to_string();
+                new_node.borrow_mut().parent = Some(Rc::clone(&current));
                 current.borrow_mut().children.push(Rc::clone(&new_node));                
             }
         }
