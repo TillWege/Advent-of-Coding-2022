@@ -54,7 +54,7 @@ impl TreeNode {
 }
 
 fn main() -> std::io::Result<()> {
-    let mut file = std::fs::File::open("./inputs/day7_example.txt")?;
+    let mut file = std::fs::File::open("./inputs/day7.txt")?;
     let mut contents = String::new();
     std::io::Read::read_to_string(&mut file, &mut contents)?;
 
@@ -101,7 +101,36 @@ fn main() -> std::io::Result<()> {
     }
 
     fs.borrow().print(0);
-    println!("{}", fs.borrow().get_size().to_string());
+    //println!("{}", fs.borrow().get_size().to_string());
+
+    current = Rc::clone(&fs);
+    let mut task_1_size = 0;
+    let mut task_2_size = 0;
+
+    for child in current.borrow().children.iter() {
+        task_1_size += get_task1_size(&child.borrow());
+    }
+
+    println!("Task 1: {}", task_1_size.to_string());
 
     Ok(())
+}
+
+fn get_task1_size(node: &TreeNode) -> u32 {
+    if !node.is_folder {
+        return 0;
+    } else {
+        let mut total_size = 0;
+        if node.get_size() <= 100000 {
+            total_size = node.get_size();
+        } else {
+            total_size = 0;
+        }
+
+        for child in node.children.iter() {
+            total_size += get_task1_size(&child.borrow());
+        }
+
+        total_size
+    }
 }
