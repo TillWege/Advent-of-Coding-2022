@@ -1,78 +1,108 @@
-const default_path: &str = "/";
+use std::{cell::RefCell, rc::Rc};
 
-enum Element{
-    Folder,
-    File
+#[derive(PartialEq)]
+struct TreeNode {
+    pub name: String,
+    pub children: Vec<Rc<RefCell<TreeNode>>>,
+    pub parent: Option<Rc<RefCell<TreeNode>>>,
+    pub size: u32,
+    pub is_folder: bool,
 }
 
-struct File {
-    name: String,
-    size: usize
-}
-
-struct Folder {
-    name: String,
-    elements: Vec<Element>,
-}
-
-impl Folder {
-    fn add_element(& mut self, elem: Element) {
-        self.elements.push(elem)
+impl TreeNode {
+    pub fn new() -> TreeNode {
+        return TreeNode {
+            name: "".to_string(),
+            children: vec![],
+            parent: None,
+            size: 0,
+            is_folder: true,
+        };
     }
 
-    fn calc_size(& self) -> usize {
-        for elem in &self.elements {
-            
+    pub fn get_size(&self) -> u32{
+        if !self.is_folder {
+            return self.size;
+        } else {
+            let mut size = 0;
+            for child in self.children.iter() {
+                size += child.borrow().get_size();
+            }
+            return size;
+        }
+    }
 
-        };
+    pub fn print(&self, level: usize) {
+        if self.children.len() == 0 {
+            println!("{}{}/{} ({})", " ".repeat(level * 2), self.get_parent_path(), self.name, self.get_size());
+        } else {
+            for child in &self.children {
+                child.borrow().print(level + 1);
+            }
+        }
+    }
 
-        0
+    pub fn get_parent_path(&self) -> String {
+        if self.parent.is_none() {
+            return "".to_string();
+        } else {
+            let parent = self.parent.as_ref().unwrap();
+            let mut path = parent.borrow().get_parent_path();
+            path.push_str(&parent.borrow().name);
+            path.push_str("/");
+            return path;
+        }
     }
 }
 
 fn main() -> std::io::Result<()> {
-    let mut file = std::fs::File::open("./inputs/day7.txt")?;
+    let mut file = std::fs::File::open("./inputs/day7_example.txt")?;
     let mut contents = String::new();
     std::io::Read::read_to_string(&mut file, &mut contents)?;
 
-    let mut file_system = Folder {
-        name: default_path.to_string(),
-        elements: Vec::new(),
-    };
-
-    let mut current_path: Vec<String> = vec![default_path.to_string()];
-
+    let fs = Rc::new(RefCell::new(TreeNode::new()));
+    let mut current = Rc::clone(&fs);
 
     for line in contents.lines() {
-        if line.starts_with('&') {
-            let mut parts = line.split_whitespace();
-            parts.next();
+        let mut parts = line.split(" ");
+        let is_command = parts.next().unwrap();
 
-            if parts.next().unwrap() == "cd" {
-                let cd_arg = parts.next().unwrap();
-                if cd_arg == default_path {
-                    current_path.drain(1..);
-                } else if cd_arg == ".." {
-                    current_path.pop();
-                } else {
-                    current_path.push(cd_arg.to_string());
+        if is_command == "$" {
+            let command = parts.next().unwrap();
+            match command {
+                "cd" => {
+                    let path = parts.next().unwrap();
+                    if path == ".." {
+                        let current_clone = Rc::clone(&current);
+                        current = Rc::clone(current_clone.borrow().parent.as_ref().unwrap());
+                    } else {
+                        let new_node = Rc::new(RefCell::new(TreeNode::new()));
+                        current.borrow_mut().children.push(Rc::clone(&new_node));
+                        {
+                            let mut mut_child = new_node.borrow_mut();
+                            mut_child.parent = Some(Rc::clone(&current));
+                            mut_child.name = path.to_string();
+                        }
+                        current = new_node;
+                    }
                 }
+                _ => {}
             }
         } else {
-            // ls output
-            let mut ls_parts = line.split_whitespace();
-            let possible_size = ls_parts.next().unwrap();
-            if let Ok(size) = possible_size.parse::<usize>() {
-
-            } else {
-
+            if is_command != "dir" {
+                let size: u32 = is_command.parse().unwrap();
+                let name = parts.next().unwrap();
+                let new_node = Rc::new(RefCell::new(TreeNode::new()));
+                new_node.borrow_mut().is_folder = false;
+                new_node.borrow_mut().size = size;
+                new_node.borrow_mut().name = name.to_string();
+                current.borrow_mut().children.push(Rc::clone(&new_node));                
             }
-
-
-
-
         }
     }
+
+    fs.borrow().print(0);
+    println!("{}", fs.borrow().get_size().to_string());
 
     Ok(())
 }
