@@ -101,17 +101,25 @@ fn main() -> std::io::Result<()> {
     }
 
     fs.borrow().print(0);
-    //println!("{}", fs.borrow().get_size().to_string());
 
     current = Rc::clone(&fs);
     let mut task_1_size = 0;
-    let mut task_2_size = 0;
 
     for child in current.borrow().children.iter() {
         task_1_size += get_task1_size(&child.borrow());
     }
 
     println!("Task 1: {}", task_1_size.to_string());
+
+    let total_fs_space = 70000000;
+    let needed_fs_space = 30000000; 
+
+    let used_space = fs.borrow().get_size();
+    let free_space = total_fs_space - used_space;
+
+    let needed_space = needed_fs_space - free_space;
+    dbg!(needed_space);
+    println!("Task 2: {}", get_smallest_folder_with_size(&fs.borrow(), needed_space).unwrap());
 
     Ok(())
 }
@@ -120,7 +128,7 @@ fn get_task1_size(node: &TreeNode) -> u32 {
     if !node.is_folder {
         return 0;
     } else {
-        let mut total_size = 0;
+        let mut total_size;
         if node.get_size() <= 100000 {
             total_size = node.get_size();
         } else {
@@ -133,4 +141,29 @@ fn get_task1_size(node: &TreeNode) -> u32 {
 
         total_size
     }
+}
+
+fn get_smallest_folder_with_size(node: &TreeNode, min_size: u32) -> Option<u32>{
+    let mut total_size = None;
+
+    let node_size = node.get_size();
+    if node_size > min_size {
+        total_size = Some(node.get_size());
+    }
+
+    for child in node.children.iter() {
+        if !child.borrow().is_folder {
+            continue;
+        }
+        let child_size = get_smallest_folder_with_size(&child.borrow(), min_size);
+        if let Some(size) = child_size {
+            let current_size = total_size.unwrap_or(u32::MAX);
+            if (size < current_size) && (size > min_size) {
+                total_size = Some(size);
+            }
+        }
+    }
+
+    total_size
+    
 }
