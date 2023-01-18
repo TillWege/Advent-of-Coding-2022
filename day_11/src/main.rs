@@ -39,7 +39,7 @@ impl Monkey {
                 }
             }
         };
-        self.items[item_id] /= 3;
+        //self.items[item_id] /= 3;
         self.inspect_count += 1;
     }
 
@@ -135,7 +135,17 @@ fn main() -> std::io::Result<()> {
 
     let monkey_count = monkeys.len();
 
-    for _ in 1..=20 {
+    
+    let mut test_divs: Vec<usize> = vec![];
+    for monkey in &monkeys {
+        test_divs.push(monkey.test_div);
+    }
+    let mut test_div_lcm = test_divs[0];
+    for i in 1..test_divs.len() {
+        test_div_lcm *= test_divs[i];
+    }
+    
+    for _ in 1..=10000 {
         for i in 0..monkey_count {
             let monkey = monkeys.get_mut(i).unwrap();
             let mut task_q: Vec<(usize, usize)> = vec![];
@@ -146,7 +156,8 @@ fn main() -> std::io::Result<()> {
             }
 
             for (target, item) in task_q {
-                monkeys.get_mut(target).unwrap().items.push(item);
+                let new_item = item % test_div_lcm;
+                monkeys.get_mut(target).unwrap().items.push(new_item);
             }
         }
         print!("");
@@ -162,10 +173,13 @@ fn main() -> std::io::Result<()> {
 
     let val1 = monkey_activity.pop().unwrap();
     let val2 = monkey_activity.pop().unwrap();
-    
+
     let monkey_buisness =  val1 * val2;
 
-    dbg!(monkeys);
+    for i in 0..monkey_count {
+        println!("Monkey {} inspected {} items", i, monkeys[i].inspect_count);
+    }
+
     dbg!(monkey_buisness);
 
     Ok(())
