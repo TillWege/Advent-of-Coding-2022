@@ -1,26 +1,55 @@
 use std::vec;
 
+#[derive(Debug)]
+enum Operator {
+    Add,
+    Mul
+}
+
+#[derive(Debug)]
+enum Operand {
+    OldValue,
+    Number(usize)
+}
+
+#[derive(Debug)]
 struct Monkey {
     items: Vec<usize>,
-    operation: fn(usize) -> usize,
+    operator: Operator,
+    operand: Operand,
     test_div: usize,
     true_target: usize,
-    false_target: usize
+    false_target: usize,
+    inspect_count: usize,
 }
 
 impl Monkey {
-    fn inspect_items(&mut self) {
-        for mut item in &self.items {
-            item = &(self.operation)(*item);
+    fn inspect_item(&mut self, item_id: usize) {
+        match self.operator {
+            Operator::Add => {
+                match self.operand {
+                    Operand::OldValue => self.items[item_id] += self.items[item_id],
+                    Operand::Number(num) => self.items[item_id] += num,
+                }
+            },
+            Operator::Mul => {
+                match self.operand {
+                    Operand::OldValue => self.items[item_id] *= self.items[item_id],
+                    Operand::Number(num) => self.items[item_id] *= num,
+                }
+            }
+        };
+        self.items[item_id] /= 3;
+        self.inspect_count += 1;
+    }
+
+    fn check_worry_level(&mut self, item_id: usize) -> (usize, usize) {
+        let item = self.items.remove(item_id);
+        if item % self.test_div == 0 {
+            return (self.true_target, item);
+        } else {
+            return (self.false_target, item);
         }
-    }
-
-    fn dec_worry(&mut self) {
-
-    }
-
-    fn check_worry_levels(&mut self, monkeys: &mut Vec<Monkey>) {
-
     }
 }
 
@@ -29,73 +58,115 @@ fn main() -> std::io::Result<()> {
     let mut contents = String::new();
     std::io::Read::read_to_string(&mut file, &mut contents)?;
 
-    let mut monkeys = vec![
-        Monkey {
-            items: vec![85, 79, 63, 72],
-            operation: |a: usize| return a * 17,
-            test_div: 2,
-            true_target: 2,
-            false_target: 6  
-        },
-        Monkey {
-            items: vec![53, 94, 65, 81, 93, 73, 57, 92],
-            operation: |a: usize| return a * a,
-            test_div: 7,
-            true_target: 0,
-            false_target: 2  
-        },
-        Monkey {
-            items: vec![62, 63],
-            operation: |a: usize| return a + 7,
-            test_div: 13,
-            true_target: 7,
-            false_target: 6  
-        },
-        Monkey {
-            items: vec![57, 92, 56],
-            operation: |a: usize| return a + 4,
-            test_div: 5,
-            true_target: 4,
-            false_target: 5  
-        },
-        Monkey {
-            items: vec![67],
-            operation: |a: usize| return a +5,
-            test_div: 3,
-            true_target: 1,
-            false_target: 5  
-        },
-        Monkey {
-            items: vec![85, 56, 66, 72, 57, 99],
-            operation: |a: usize| return a + 6,
-            test_div: 19,
-            true_target: 1,
-            false_target: 0  
-        },
-        Monkey {
-            items: vec![86, 65, 98, 97, 69],
-            operation: |a: usize| return a * 13,
-            test_div: 1,
-            true_target: 3,
-            false_target: 7  
-        },
-        Monkey {
-            items: vec![87, 68, 92, 66, 91, 50, 68],
-            operation: |a: usize| return a + 2,
-            test_div: 17,
-            true_target: 4,
-            false_target: 3  
-        },
-    ];
+    let mut lines = contents.lines().filter(|s| !s.is_empty()).peekable();
 
-    
-    for mut monkey in monkeys {
-        monkey.inspect_items();
-        monkey.dec_worry();
-        //monkey.check_worry_levels(&mut monkeys);
+    let mut monkeys: Vec<Monkey> = vec![];
+
+    while lines.peek().is_some() {
+        let _monkey_number = lines
+            .next()
+            .unwrap()
+            .split_whitespace()
+            .last()
+            .unwrap()
+            .replace(":", "")
+            .parse::<usize>()
+            .unwrap();
+        let items = lines
+            .next()
+            .unwrap()
+            .split(": ")
+            .last()
+            .unwrap()
+            .to_string()
+            .replace(",", "")
+            .split_whitespace()
+            .map(|s| s.parse::<usize>().unwrap())
+            .collect::<Vec<usize>>();
+        let mut op_text = lines.next().unwrap().split("old ").last().unwrap().split_whitespace();
+        let operator = match op_text.next().unwrap() {
+            "+" => Operator::Add,
+            "*" => Operator::Mul,
+            _ => panic!("Unknown operand"),
+        };
+
+        let operand = match op_text.next().unwrap() {
+            "old" => Operand::OldValue,
+            val => Operand::Number(val.parse::<usize>().unwrap()),
+        };
+        
+        let test_div = lines
+            .next()
+            .unwrap()
+            .split("by ")
+            .last()
+            .unwrap()
+            .parse::<usize>()
+            .unwrap();
+        let true_target = lines
+            .next()
+            .unwrap()
+            .split("monkey ")
+            .last()
+            .unwrap()
+            .parse::<usize>()
+            .unwrap();
+        let false_target = lines
+            .next()
+            .unwrap()
+            .split("monkey ")
+            .last()
+            .unwrap()
+            .parse::<usize>()
+            .unwrap();
+
+        let new_monkey = Monkey {
+            items,
+            operator,
+            operand,
+            test_div,
+            true_target,
+            false_target,
+            inspect_count: 0,
+        };
+
+        monkeys.push(new_monkey);
+    }
+
+    let monkey_count = monkeys.len();
+
+    for _ in 1..=20 {
+        for i in 0..monkey_count {
+            let monkey = monkeys.get_mut(i).unwrap();
+            let mut task_q: Vec<(usize, usize)> = vec![];
+                
+            for item_id in (0..monkey.items.len()).rev() {
+                monkey.inspect_item(item_id);
+                task_q.push(monkey.check_worry_level(item_id));
+            }
+
+            for (target, item) in task_q {
+                monkeys.get_mut(target).unwrap().items.push(item);
+            }
+        }
+        print!("");
     }
 
 
-    Ok(())
+    let mut monkey_activity: Vec<usize> = vec![];
+    for monkey in &monkeys {
+        monkey_activity.push(monkey.inspect_count);
+    }
 
+    monkey_activity.sort();
+
+    let val1 = monkey_activity.pop().unwrap();
+    let val2 = monkey_activity.pop().unwrap();
+    
+    let monkey_buisness =  val1 * val2;
+
+    dbg!(monkeys);
+    dbg!(monkey_buisness);
+
+    Ok(())
 }
